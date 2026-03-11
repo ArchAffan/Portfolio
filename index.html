@@ -3,358 +3,553 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Clippers FC — Video Editing</title>
+  <title>Ghost — Video Editor</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500&family=DM+Mono:wght@400;500&family=Syne:wght@400;700;800&family=Exo+2:wght@700;800;900&display=swap" rel="stylesheet" />
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --black:        #07060A;
-      --surface:      #0E0B14;
-      --card:         #130F1C;
-      --purple:       #7B2FBE;
-      --purple-light: #9B59D0;
-      --purple-glow:  rgba(123,47,190,0.35);
-      --purple-dim:   rgba(123,47,190,0.12);
-      --white:        #F5F3FF;
-      --grey:         #7A7585;
-      --border:       rgba(255,255,255,0.07);
+      --bg:         #07060A;
+      --bg2:        #0C0910;
+      --card:       #110D18;
+      --purple:     #8B3FD9;
+      --purple-lt:  #A855F7;
+      --purple-dim: rgba(139,63,217,0.12);
+      --purple-mid: rgba(139,63,217,0.25);
+      --purple-glow:rgba(139,63,217,0.4);
+      --white:      #F0ECFF;
+      --grey:       #665E78;
+      --border:     rgba(139,63,217,0.1);
+      --border-w:   rgba(255,255,255,0.06);
     }
 
     html { scroll-behavior: smooth; }
 
     body {
-      background: var(--black);
+      background: var(--bg);
       color: var(--white);
-      font-family: 'Inter', sans-serif;
+      font-family: 'Barlow', sans-serif;
       font-weight: 300;
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
     }
 
+    /* grain overlay */
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 9999;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.03;
+      pointer-events: none;
+    }
+
     /* ── NAV ── */
     nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 99;
-      padding: 1.2rem clamp(1.25rem, 5vw, 2.5rem);
+      position: fixed; top: 0; left: 0; right: 0; z-index: 90;
+      padding: 1.2rem clamp(1.5rem, 5vw, 3rem);
       display: flex; align-items: center; justify-content: space-between;
       border-bottom: 1px solid transparent;
       transition: background 0.4s, border-color 0.4s;
     }
-    nav.scrolled {
-      background: rgba(7,6,10,0.92);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-color: var(--border);
+    nav.stuck {
+      background: rgba(7,6,10,0.95);
+      backdrop-filter: blur(20px);
+      border-color: var(--border-w);
     }
-    .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.2rem; letter-spacing: -0.01em; }
-    .logo span { color: var(--purple-light); }
+    .logo {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900; font-size: 1.3rem;
+      letter-spacing: 0.14em; text-transform: uppercase;
+    }
+    .logo-g { color: var(--purple-lt); }
 
-    .nav-links { display: flex; gap: 2rem; align-items: center; }
+    .nav-links { display: flex; gap: 2.5rem; align-items: center; }
     .nav-links a {
-      color: var(--grey); text-decoration: none;
-      font-size: 0.82rem; letter-spacing: 0.03em;
-      transition: color 0.2s;
+      font-family: 'DM Mono', monospace; font-size: 0.68rem;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--grey); text-decoration: none; transition: color 0.2s;
     }
-    .nav-links a:hover { color: var(--white); }
-    .nav-cta {
-      background: var(--purple-dim);
-      border: 1px solid rgba(123,47,190,0.35);
-      color: var(--purple-light) !important;
-      padding: 0.45rem 1rem;
-      border-radius: 6px;
-      transition: background 0.2s, border-color 0.2s !important;
-    }
-    .nav-cta:hover { background: rgba(123,47,190,0.22) !important; border-color: rgba(123,47,190,0.6) !important; }
+    .nav-links a:hover { color: var(--purple-lt); }
 
-    /* mobile hamburger */
     .ham {
-      display: none;
-      flex-direction: column; gap: 5px; cursor: pointer;
-      background: none; border: none; padding: 4px;
+      display: none; flex-direction: column; gap: 5px;
+      background: none; border: none; cursor: pointer; padding: 4px;
     }
     .ham span {
-      display: block; width: 22px; height: 2px;
+      display: block; width: 20px; height: 1.5px;
       background: var(--grey); border-radius: 2px;
-      transition: all 0.3s;
     }
-    .mobile-nav {
-      display: none;
-      position: fixed; top: 60px; left: 0; right: 0; z-index: 98;
-      background: rgba(7,6,10,0.97);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
-      padding: 1.5rem clamp(1.25rem, 5vw, 2.5rem);
-      flex-direction: column; gap: 1.2rem;
+
+    .mob-nav {
+      display: none; position: fixed;
+      top: 60px; left: 0; right: 0; z-index: 89;
+      background: rgba(7,6,10,0.98);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-w);
+      padding: 1.5rem clamp(1.5rem, 5vw, 3rem);
+      flex-direction: column;
     }
-    .mobile-nav.open { display: flex; }
-    .mobile-nav a {
+    .mob-nav.open { display: flex; }
+    .mob-nav a {
+      font-family: 'DM Mono', monospace; font-size: 0.85rem;
+      letter-spacing: 0.12em; text-transform: uppercase;
       color: var(--grey); text-decoration: none;
-      font-size: 1rem; letter-spacing: 0.03em;
-      padding: 0.5rem 0;
-      border-bottom: 1px solid var(--border);
+      padding: 1rem 0; border-bottom: 1px solid var(--border-w);
       transition: color 0.2s;
     }
-    .mobile-nav a:last-child { border-bottom: none; }
-    .mobile-nav a:hover { color: var(--white); }
-
-    /* ── SHARED ── */
-    section { padding: clamp(4rem, 8vw, 7rem) clamp(1.25rem, 5vw, 2.5rem); }
-    .inner { max-width: 1100px; margin: 0 auto; }
-
-    .s-label {
-      font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase;
-      color: var(--purple-light); margin-bottom: 0.6rem;
-    }
-    h2 {
-      font-family: 'Syne', sans-serif; font-weight: 800;
-      font-size: clamp(2rem, 5vw, 3.8rem);
-      letter-spacing: -0.02em; line-height: 1.05; margin-bottom: 1rem;
-    }
-    .s-desc { font-size: 0.95rem; color: var(--grey); line-height: 1.75; max-width: 50ch; }
-    hr.divider { border: none; border-top: 1px solid var(--border); margin: 0 clamp(1.25rem, 5vw, 2.5rem); }
+    .mob-nav a:last-child { border-bottom: none; }
+    .mob-nav a:hover { color: var(--purple-lt); }
 
     /* ── HERO ── */
     #hero {
-      min-height: 100svh;
+      min-height: 100vh;
       display: flex; flex-direction: column; justify-content: center;
-      padding: 0 clamp(1.25rem, 5vw, 2.5rem);
+      padding: 0 clamp(1.5rem, 5vw, 3rem);
       position: relative; overflow: hidden;
     }
+
+    .grid-bg {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(139,63,217,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(139,63,217,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 20%, transparent 100%);
+    }
+
     .hero-glow {
-      position: absolute; top: -20%; left: -10%;
-      width: clamp(400px, 60vw, 700px); height: clamp(400px, 60vw, 700px);
+      position: absolute; top: -30%; right: -10%;
+      width: clamp(400px,60vw,800px); height: clamp(400px,60vw,800px);
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(123,47,190,0.16) 0%, transparent 65%);
+      background: radial-gradient(circle, rgba(139,63,217,0.14) 0%, transparent 65%);
       pointer-events: none;
     }
-    .hero-inner { max-width: 900px; position: relative; z-index: 1; }
 
-    .tag {
-      display: inline-flex; align-items: center; gap: 0.5rem;
-      border: 1px solid rgba(123,47,190,0.4); background: var(--purple-dim);
-      color: var(--purple-light); font-size: 0.7rem; letter-spacing: 0.14em;
-      text-transform: uppercase; padding: 0.35rem 0.9rem; border-radius: 100px;
-      margin-bottom: 2rem;
+    .hero-inner { max-width: 1100px; margin: 0 auto; width: 100%; position: relative; z-index: 1; }
+
+    .hero-tag {
+      font-family: 'DM Mono', monospace; font-size: 0.68rem;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--purple-lt);
+      display: flex; align-items: center; gap: 0.7rem;
+      margin-bottom: 1.8rem;
       opacity: 0; animation: up 0.6s 0.1s ease forwards;
     }
-    .tag-dot {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: var(--purple-light); animation: blink 2s infinite;
+    .hero-tag::before {
+      content: ''; display: block; width: 32px; height: 1px;
+      background: var(--purple-lt);
     }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
 
-    h1 {
-      font-family: 'Orbitron', sans-serif; font-weight: 900;
-      font-size: clamp(2.2rem, 6.5vw, 6.5rem);
-      line-height: 1.1; letter-spacing: -0.01em;
-      opacity: 0; animation: up 0.7s 0.25s ease forwards;
+    .hero-name {
+      font-family: 'Exo 2', sans-serif;
+      font-weight: 900; text-transform: uppercase;
+      font-size: clamp(4.5rem, 17vw, 16rem);
+      line-height: 0.9; letter-spacing: -0.02em;
+      text-shadow: 0 0 80px rgba(139,63,217,0.35), 0 0 20px rgba(139,63,217,0.2);
+      opacity: 0; animation: up 0.7s 0.2s ease forwards;
     }
-    h1 em { font-style: normal; color: var(--purple-light); }
+    .ghost-g { color: var(--purple-lt); }
 
-    .hero-sub {
-      margin-top: 1.6rem;
-      font-size: clamp(0.9rem, 1.5vw, 1.1rem);
-      color: var(--grey); line-height: 1.8; max-width: 46ch;
+    .hero-row {
+      margin-top: 2.5rem;
+      display: flex; align-items: flex-end;
+      justify-content: space-between; flex-wrap: wrap; gap: 2rem;
       opacity: 0; animation: up 0.7s 0.4s ease forwards;
     }
+    .hero-desc {
+      font-size: clamp(0.9rem, 1.4vw, 1.05rem);
+      color: var(--grey); line-height: 1.8; max-width: 44ch;
+    }
+    .hero-desc strong { color: var(--white); font-weight: 500; }
+
+    .hero-stats { display: flex; gap: 2.5rem; flex-wrap: wrap; }
+    .stat-num {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800; font-size: 2.2rem; line-height: 1;
+      color: var(--purple-lt);
+    }
+    .stat-label {
+      font-family: 'DM Mono', monospace; font-size: 0.58rem;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--grey); margin-top: 0.2rem;
+    }
+
     .hero-btns {
-      margin-top: 2.4rem; display: flex; gap: 0.85rem; flex-wrap: wrap;
+      margin-top: 2.5rem; display: flex; gap: 1rem; flex-wrap: wrap;
       opacity: 0; animation: up 0.7s 0.55s ease forwards;
     }
     .btn {
-      display: inline-flex; align-items: center; gap: 0.4rem;
-      font-size: 0.82rem; font-weight: 500;
-      padding: 0.8rem 1.7rem; border-radius: 9px;
-      text-decoration: none; transition: all 0.25s; letter-spacing: 0.01em;
-    }
-    .btn-fill { background: var(--purple); color: #fff; }
-    .btn-fill:hover { background: var(--purple-light); transform: translateY(-2px); box-shadow: 0 10px 28px var(--purple-glow); }
-    .btn-outline { border: 1px solid var(--border); color: var(--grey); }
-    .btn-outline:hover { border-color: rgba(123,47,190,0.45); color: var(--white); }
-
-    /* ── WORK ── */
-    #work { background: var(--surface); }
-    .videos-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
-      gap: 1.2rem; margin-top: 3rem;
-    }
-    .video-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px; padding: 2rem;
-      display: flex; flex-direction: column; gap: 1.6rem;
-      transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
-    }
-    .video-card:hover {
-      border-color: rgba(123,47,190,0.4);
-      transform: translateY(-3px);
-      box-shadow: 0 14px 44px rgba(123,47,190,0.1);
-    }
-    .video-card-header {
-      display: flex; align-items: flex-start;
-      justify-content: space-between; gap: 1rem;
-    }
-    .video-index {
-      font-family: 'Syne', sans-serif; font-weight: 800;
-      font-size: 3.5rem; line-height: 1; letter-spacing: -0.04em;
-      color: rgba(255,255,255,0.05); user-select: none; flex-shrink: 0;
-    }
-    .video-title {
-      font-family: 'Syne', sans-serif; font-weight: 700;
-      font-size: 1.3rem; letter-spacing: -0.01em; margin-bottom: 0.3rem;
-    }
-    .video-type { font-size: 0.78rem; color: var(--grey); }
-    .watch-btn {
       display: inline-flex; align-items: center; gap: 0.5rem;
-      background: var(--purple); color: #fff;
-      font-size: 0.82rem; font-weight: 500;
-      padding: 0.75rem 1.4rem; border-radius: 8px;
+      font-family: 'DM Mono', monospace; font-size: 0.7rem;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      padding: 0.85rem 2rem; border-radius: 4px;
       text-decoration: none; transition: all 0.25s;
-      align-self: flex-start;
     }
-    .watch-btn:hover {
-      background: var(--purple-light); transform: translateY(-1px);
-      box-shadow: 0 6px 20px var(--purple-glow);
+    .btn-solid { background: var(--purple); color: #fff; }
+    .btn-solid:hover {
+      background: var(--purple-lt); transform: translateY(-2px);
+      box-shadow: 0 10px 30px var(--purple-glow);
+    }
+    .btn-outline { border: 1px solid rgba(139,63,217,0.35); color: var(--purple-lt); }
+    .btn-outline:hover { background: var(--purple-dim); border-color: var(--purple-lt); }
+
+    /* ── SHARED ── */
+    section { padding: clamp(4rem, 8vw, 7rem) clamp(1.5rem, 5vw, 3rem); }
+    .inner { max-width: 1100px; margin: 0 auto; }
+
+    .sec-eyebrow {
+      font-family: 'DM Mono', monospace; font-size: 0.65rem;
+      letter-spacing: 0.22em; text-transform: uppercase; color: var(--purple-lt);
+      display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.7rem;
+    }
+    .sec-eyebrow::before {
+      content: ''; display: block; width: 24px; height: 1px; background: var(--purple-lt);
     }
 
-    /* ── ABOUT ── */
-    #about { background: var(--black); }
-    .about-grid {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 3rem; align-items: start; margin-top: 3rem;
+    h2 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800; text-transform: uppercase;
+      font-size: clamp(2.2rem, 5vw, 4.5rem);
+      letter-spacing: -0.01em; line-height: 1; margin-bottom: 0.8rem;
     }
-    .about-text p { font-size: 0.97rem; color: var(--grey); line-height: 1.85; margin-bottom: 1.1rem; }
-    .about-text p strong { color: var(--white); font-weight: 500; }
-    .about-sign {
-      font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase;
-      color: var(--purple-light); margin-top: 1.6rem;
-    }
-    .about-cards { display: flex; flex-direction: column; gap: 1rem; }
-    .about-card {
-      background: var(--card); border: 1px solid var(--border);
-      border-left: 3px solid var(--purple); border-radius: 10px;
-      padding: 1.3rem 1.5rem;
-      transition: border-color 0.3s, transform 0.3s;
-    }
-    .about-card:hover { border-color: rgba(123,47,190,0.35); transform: translateX(3px); }
-    .about-card-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 0.2rem; }
-    .about-card-role { font-size: 0.68rem; color: var(--purple-light); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.65rem; }
-    .about-card p { font-size: 0.84rem; color: var(--grey); line-height: 1.7; }
+    .sec-sub { font-size: 0.92rem; color: var(--grey); line-height: 1.8; max-width: 48ch; }
 
-    /* ── SERVICES ── */
-    #services { background: var(--surface); }
-    .services-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-      gap: 1.2rem; margin-top: 3rem;
+    hr.div {
+      border: none; border-top: 1px solid var(--border-w);
+      margin: 0 clamp(1.5rem, 5vw, 3rem);
     }
-    .svc-card {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 14px; padding: 2rem;
-      transition: border-color 0.3s, transform 0.3s;
-    }
-    .svc-card:hover { border-color: rgba(123,47,190,0.35); transform: translateY(-3px); }
-    .svc-icon { font-size: 1.7rem; margin-bottom: 1.1rem; }
-    .svc-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.15rem; margin-bottom: 0.55rem; }
-    .svc-desc { font-size: 0.84rem; color: var(--grey); line-height: 1.75; }
 
-    /* ── CONTACT ── */
-    #contact { background: var(--black); }
+    /* ── SKILLS ── */
+    #skills { background: var(--bg2); }
 
-    .contact-cards {
+    .skills-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
-      gap: 1.2rem;
-      margin-top: 3rem;
+      gap: 1px; margin-top: 3.5rem;
+      border: 1px solid var(--border-w); border-radius: 14px; overflow: hidden;
+    }
+    .skill-cell {
+      background: var(--card); padding: 2rem 1.8rem;
+      transition: background 0.3s; position: relative; overflow: hidden;
+    }
+    .skill-cell::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--purple), var(--purple-lt));
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 0.35s ease;
+    }
+    .skill-cell:hover { background: #160f22; }
+    .skill-cell:hover::before { transform: scaleX(1); }
+
+    .skill-icon { font-size: 1.5rem; margin-bottom: 1rem; }
+    .skill-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; font-size: 1.25rem;
+      text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.5rem;
+    }
+    .skill-desc { font-size: 0.82rem; color: var(--grey); line-height: 1.7; }
+    .skill-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1rem; }
+    .skill-tag {
+      font-family: 'DM Mono', monospace; font-size: 0.58rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--purple-lt); background: var(--purple-dim);
+      border: 1px solid rgba(139,63,217,0.2);
+      padding: 0.22rem 0.6rem; border-radius: 2px;
     }
 
-    .contact-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 1.8rem;
-      display: flex; flex-direction: column; gap: 0.5rem;
+    /* ── WORK ── */
+    #work { background: var(--bg); }
+
+    .work-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.4rem; margin-top: 3.5rem;
+    }
+    @media (max-width: 700px) {
+      .work-grid { grid-template-columns: 1fr; }
+    }
+    .work-card {
+      background: var(--card); border: 1px solid var(--border-w);
+      border-radius: 12px; padding: 1.8rem;
+      display: flex; flex-direction: column; gap: 1.2rem;
       transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+      position: relative; overflow: hidden;
     }
-    .contact-card:hover {
-      border-color: rgba(123,47,190,0.35);
-      transform: translateY(-3px);
-      box-shadow: 0 12px 36px rgba(123,47,190,0.09);
+    .work-card::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(139,63,217,0.05) 0%, transparent 60%);
+      opacity: 0; transition: opacity 0.3s;
     }
-    .cc-icon {
-      width: 40px; height: 40px; border-radius: 10px;
-      background: var(--purple-dim);
+    .work-card:hover {
+      border-color: rgba(139,63,217,0.35);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 50px rgba(139,63,217,0.08);
+    }
+    .work-card:hover::after { opacity: 1; }
+
+    .work-num {
+      font-family: 'DM Mono', monospace; font-size: 0.62rem;
+      letter-spacing: 0.18em; color: var(--purple-lt);
+    }
+    .work-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800; font-size: 1.6rem;
+      text-transform: uppercase; letter-spacing: 0.02em; line-height: 1;
+    }
+    .work-meta { font-size: 0.82rem; color: var(--grey); line-height: 1.65; }
+
+    .work-footer {
+      display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;
+      margin-top: auto;
+    }
+    .work-type {
+      font-family: 'DM Mono', monospace; font-size: 0.6rem;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--purple-lt); background: var(--purple-dim);
+      border: 1px solid rgba(139,63,217,0.2);
+      padding: 0.28rem 0.7rem; border-radius: 2px;
+    }
+    .watch-link {
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      font-family: 'DM Mono', monospace; font-size: 0.65rem;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: #fff; background: var(--purple);
+      padding: 0.6rem 1.2rem; border-radius: 4px;
+      text-decoration: none; transition: all 0.22s;
+    }
+    .watch-link:hover {
+      background: var(--purple-lt);
+      box-shadow: 0 6px 20px var(--purple-glow);
+      transform: translateY(-1px);
+    }
+    .soon-label {
+      font-family: 'DM Mono', monospace; font-size: 0.6rem;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--grey);
+    }
+
+    /* Sleek video preview banner */
+    .vid-preview {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 0.8rem;
+      width: 100%; padding: 2.2rem 1rem;
+      border-radius: 8px; overflow: hidden;
+      background: linear-gradient(135deg, #130d20 0%, #0a0612 100%);
+      border: 1px solid rgba(139,63,217,0.15);
+      position: relative; text-decoration: none;
+      transition: border-color 0.3s, background 0.3s;
+      cursor: pointer;
+    }
+    .vid-preview:hover {
+      border-color: rgba(139,63,217,0.5);
+      background: linear-gradient(135deg, #1c1030 0%, #0e0a1c 100%);
+    }
+    .vid-glow {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% 120%, rgba(139,63,217,0.18) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .vid-play-btn {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: var(--purple);
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem; margin-bottom: 0.6rem;
+      box-shadow: 0 0 0 8px rgba(139,63,217,0.15), 0 0 30px rgba(139,63,217,0.3);
+      transition: transform 0.25s, box-shadow 0.25s;
+      position: relative; z-index: 1;
     }
-    .cc-label {
-      font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase;
-      color: var(--purple-light);
+    .vid-play-btn svg { width: 20px; height: 20px; margin-left: 3px; }
+    .vid-preview:hover .vid-play-btn {
+      transform: scale(1.1);
+      box-shadow: 0 0 0 12px rgba(139,63,217,0.2), 0 0 50px rgba(139,63,217,0.5);
     }
-    .cc-value {
-      font-family: 'Syne', sans-serif; font-weight: 600;
-      font-size: 1rem; color: var(--white);
-    }
-    .cc-action {
-      display: inline-flex; align-items: center; gap: 0.35rem;
-      margin-top: 0.6rem;
-      font-size: 0.78rem; color: var(--grey); text-decoration: none;
+    .vid-cta {
+      font-family: 'DM Mono', monospace; font-size: 0.62rem;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--grey); position: relative; z-index: 1;
       transition: color 0.2s;
     }
-    .cc-action:hover { color: var(--purple-light); }
+    .vid-preview:hover .vid-cta { color: var(--purple-lt); }
 
-    .contact-note-strip {
-      margin-top: 2rem;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--purple);
-      border-radius: 10px;
-      padding: 1.3rem 1.5rem;
-      font-size: 0.88rem;
-      color: var(--grey);
-      line-height: 1.75;
+    /* Lightbox modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 999;
+      background: rgba(0,0,0,0.92); backdrop-filter: blur(8px);
+      align-items: center; justify-content: center;
     }
-    .contact-note-strip strong { color: var(--white); font-weight: 500; }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      position: relative; width: min(900px, 92vw);
+      background: #0c0910; border: 1px solid rgba(139,63,217,0.25);
+      border-radius: 14px; overflow: hidden;
+      box-shadow: 0 0 80px rgba(139,63,217,0.2);
+      animation: popIn 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    @keyframes popIn {
+      from { opacity:0; transform: scale(0.92); }
+      to   { opacity:1; transform: scale(1); }
+    }
+    .modal-video {
+      position: relative; width: 100%; padding-bottom: 56.25%;
+      background: #000;
+    }
+    .modal-video iframe {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%; border: none;
+    }
+    .modal-close {
+      position: absolute; top: 12px; right: 14px; z-index: 10;
+      background: rgba(139,63,217,0.8); border: none;
+      color: #fff; font-size: 1.1rem; line-height: 1;
+      width: 34px; height: 34px; border-radius: 50%;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s;
+    }
+    .modal-close:hover { background: var(--purple-lt); }
+
+    /* ── ABOUT ── */
+    #about { background: var(--bg2); }
+
+    .about-layout {
+      display: grid; grid-template-columns: 1fr 1.1fr;
+      gap: 4rem; align-items: start; margin-top: 3.5rem;
+    }
+    .about-left p {
+      font-size: 0.97rem; color: var(--grey);
+      line-height: 1.85; margin-bottom: 1rem;
+    }
+    .about-left p strong { color: var(--white); font-weight: 500; }
+
+    .spec-table { display: flex; flex-direction: column; }
+    .spec-row {
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 1rem;
+      padding: 1rem 0; border-bottom: 1px solid var(--border-w);
+    }
+    .spec-row:last-child { border-bottom: none; }
+    .spec-label {
+      font-family: 'DM Mono', monospace; font-size: 0.62rem;
+      letter-spacing: 0.16em; text-transform: uppercase; color: var(--grey);
+    }
+    .spec-val {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; font-size: 1rem;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--white); text-align: right;
+    }
+    .spec-val.accent { color: var(--purple-lt); }
+
+    /* ── CONTACT ── */
+    #contact { background: var(--bg); }
+
+    .contact-wrap {
+      display: grid; grid-template-columns: 1.2fr 1fr;
+      gap: 4rem; align-items: start; margin-top: 3.5rem;
+    }
+    .contact-left h3 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800; text-transform: uppercase;
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      letter-spacing: -0.01em; line-height: 1.05; margin-bottom: 1.2rem;
+    }
+    .contact-left h3 em { font-style: normal; color: var(--purple-lt); }
+    .contact-left p {
+      font-size: 0.92rem; color: var(--grey); line-height: 1.8; max-width: 42ch;
+    }
+
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      margin-top: 2rem;
+      font-family: 'DM Mono', monospace; font-size: 0.62rem;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--purple-lt); background: var(--purple-dim);
+      border: 1px solid rgba(139,63,217,0.2);
+      padding: 0.5rem 1rem; border-radius: 100px;
+    }
+    .status-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--purple-lt); animation: blink 2s infinite;
+    }
+    @keyframes blink { 0%,100%{ opacity:1; } 50%{ opacity:0.2; } }
+
+    .contact-cards { display: flex; flex-direction: column; gap: 1rem; }
+
+    .c-card {
+      background: var(--card); border: 1px solid var(--border-w);
+      border-radius: 10px; padding: 1.5rem;
+      display: flex; align-items: center; gap: 1.2rem;
+      text-decoration: none;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .c-card:hover {
+      border-color: rgba(139,63,217,0.35); transform: translateX(4px);
+    }
+    .c-card-icon {
+      width: 44px; height: 44px; border-radius: 8px;
+      background: var(--purple-dim); border: 1px solid rgba(139,63,217,0.15);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; font-size: 1.1rem;
+    }
+    .c-card-label {
+      font-family: 'DM Mono', monospace; font-size: 0.58rem;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--purple-lt); margin-bottom: 0.25rem;
+    }
+    .c-card-val {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; font-size: 1.15rem;
+      text-transform: uppercase; letter-spacing: 0.04em; color: var(--white);
+    }
+    .c-arrow {
+      font-size: 1rem; color: var(--grey); flex-shrink: 0;
+      transition: color 0.2s, transform 0.2s;
+    }
+    .c-card:hover .c-arrow { color: var(--purple-lt); transform: translateX(3px); }
 
     /* ── FOOTER ── */
     footer {
-      border-top: 1px solid var(--border);
-      padding: 1.8rem clamp(1.25rem, 5vw, 2.5rem);
-      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+      border-top: 1px solid var(--border-w);
+      padding: 1.8rem clamp(1.5rem, 5vw, 3rem);
+      display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 1rem;
     }
-    .f-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem; }
-    .f-logo span { color: var(--purple-light); }
-    .f-copy { font-size: 0.72rem; color: var(--grey); }
+    .f-logo {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900; font-size: 1.2rem;
+      text-transform: uppercase; letter-spacing: 0.12em;
+    }
+    .f-logo span { color: var(--purple-lt); }
+    .f-copy {
+      font-family: 'DM Mono', monospace; font-size: 0.6rem;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--grey);
+    }
 
     /* ── ANIMATIONS ── */
     @keyframes up {
-      from { opacity: 0; transform: translateY(24px); }
+      from { opacity: 0; transform: translateY(28px); }
       to   { opacity: 1; transform: translateY(0); }
     }
     .reveal {
-      opacity: 0; transform: translateY(24px);
-      transition: opacity 0.65s cubic-bezier(0.16,1,0.3,1), transform 0.65s cubic-bezier(0.16,1,0.3,1);
+      opacity: 0; transform: translateY(26px);
+      transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1),
+                  transform 0.7s cubic-bezier(0.16,1,0.3,1);
     }
     .reveal.in { opacity: 1; transform: translateY(0); }
-    .d1 { transition-delay: 0.08s; }
-    .d2 { transition-delay: 0.16s; }
-    .d3 { transition-delay: 0.24s; }
-    .d4 { transition-delay: 0.32s; }
+    .d1{transition-delay:0.07s} .d2{transition-delay:0.14s}
+    .d3{transition-delay:0.21s} .d4{transition-delay:0.28s}
 
     /* ── RESPONSIVE ── */
-    @media (max-width: 800px) {
+    @media (max-width: 860px) {
       .nav-links { display: none; }
       .ham { display: flex; }
-      .about-grid { grid-template-columns: 1fr; gap: 2rem; }
-      section { padding: clamp(3.5rem, 7vw, 5rem) clamp(1.25rem, 5vw, 2rem); }
+      .about-layout, .contact-wrap { grid-template-columns: 1fr; gap: 2.5rem; }
+      .hero-row { flex-direction: column; align-items: flex-start; }
     }
-
     @media (max-width: 480px) {
-      h1 { font-size: clamp(2.5rem, 11vw, 3.5rem); }
-      h2 { font-size: clamp(1.8rem, 7vw, 2.5rem); }
-      .video-card, .svc-card, .about-card, .contact-card { padding: 1.5rem; }
+      .hero-name { font-size: clamp(4.5rem, 22vw, 6rem); }
+      .hero-stats { gap: 1.5rem; }
     }
   </style>
 </head>
@@ -362,232 +557,328 @@
 
   <!-- NAV -->
   <nav id="nav">
-    <div class="logo">Clippers<span> FC</span></div>
+    <div class="logo"><span class="logo-g">G</span>HOST</div>
     <div class="nav-links">
+      <a href="#skills">Skills</a>
       <a href="#work">Work</a>
       <a href="#about">About</a>
-      <a href="#services">Services</a>
-      <a href="#contact" class="nav-cta">Contact</a>
+      <a href="#contact">Contact</a>
     </div>
     <button class="ham" id="ham" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
   </nav>
 
-  <!-- MOBILE NAV -->
-  <div class="mobile-nav" id="mobileNav">
-    <a href="#work"     onclick="closeMobile()">Work</a>
-    <a href="#about"    onclick="closeMobile()">About</a>
-    <a href="#services" onclick="closeMobile()">Services</a>
-    <a href="#contact"  onclick="closeMobile()">Contact</a>
+  <div class="mob-nav" id="mobNav">
+    <a href="#skills"  onclick="closeMob()">Skills</a>
+    <a href="#work"    onclick="closeMob()">Work</a>
+    <a href="#about"   onclick="closeMob()">About</a>
+    <a href="#contact" onclick="closeMob()">Contact</a>
   </div>
 
   <!-- HERO -->
   <section id="hero">
+    <div class="grid-bg"></div>
     <div class="hero-glow"></div>
     <div class="hero-inner">
-      <div class="tag"><span class="tag-dot"></span> Video Editing Portfolio</div>
-      <h1>We Edit.<br />You <em>Dominate.</em></h1>
-      <p class="hero-sub">Short-form reels and long-form YouTube content crafted to stop the scroll and grow your audience.</p>
+      <div class="hero-tag">Video Editor &amp; Motion Designer</div>
+      <div class="hero-name"><span class="ghost-g">G</span>HOST</div>
+      <div class="hero-row">
+        <p class="hero-desc">
+          I cut footage into <strong>stories people can&#39;t stop watching.</strong>
+          Long-form YouTube edits, short-form reels, cinematic thumbnails &#8212;
+          every frame built to hold attention and drive results.
+        </p>
+        <div class="hero-stats">
+          <div>
+            <div class="stat-num">50+</div>
+            <div class="stat-label">Projects Done</div>
+          </div>
+          <div>
+            <div class="stat-num">2+</div>
+            <div class="stat-label">Years Editing</div>
+          </div>
+          <div>
+            <div class="stat-num">48h</div>
+            <div class="stat-label">Avg Delivery</div>
+          </div>
+        </div>
+      </div>
       <div class="hero-btns">
-        <a href="#work"    class="btn btn-fill">See Our Work</a>
-        <a href="#contact" class="btn btn-outline">Get In Touch →</a>
+        <a href="#work"    class="btn btn-solid">View My Work</a>
+        <a href="#contact" class="btn btn-outline">Get In Touch &#8599;</a>
       </div>
     </div>
   </section>
 
-  <hr class="divider" />
+  <hr class="div" />
+
+  <!-- SKILLS -->
+  <section id="skills">
+    <div class="inner">
+      <div class="reveal">
+        <div class="sec-eyebrow">What I Do</div>
+        <h2>Skills &amp; Stack</h2>
+        <p class="sec-sub">Tools I use every day to make content that actually performs.</p>
+      </div>
+      <div class="skills-grid">
+        <div class="skill-cell reveal d1">
+          <div class="skill-icon">&#127897;</div>
+          <div class="skill-name">Long-Form Editing</div>
+          <p class="skill-desc">Full YouTube video edits &#8212; structure, pacing, B-roll, graphics. Built to keep viewers locked in start to finish.</p>
+          <div class="skill-tags">
+            <span class="skill-tag">Premiere Pro</span>
+            <span class="skill-tag">B-Roll</span>
+            <span class="skill-tag">Pacing</span>
+          </div>
+        </div>
+        <div class="skill-cell reveal d2">
+          <div class="skill-icon">&#9889;</div>
+          <div class="skill-name">Short-Form / Reels</div>
+          <p class="skill-desc">Punchy, fast-cut reels and TikToks engineered to hook in the first second. Every beat timed, every cut intentional.</p>
+          <div class="skill-tags">
+            <span class="skill-tag">Reels</span>
+            <span class="skill-tag">TikTok</span>
+            <span class="skill-tag">Shorts</span>
+          </div>
+        </div>
+        <div class="skill-cell reveal d3">
+          <div class="skill-icon">&#127775;</div>
+          <div class="skill-name">Thumbnail Design</div>
+          <p class="skill-desc">High-CTR thumbnails that make people click before they even think about it. Bold, clean, built to win the scroll.</p>
+          <div class="skill-tags">
+            <span class="skill-tag">Photoshop</span>
+            <span class="skill-tag">CTR Design</span>
+          </div>
+        </div>
+        <div class="skill-cell reveal d4">
+          <div class="skill-icon">&#127916;</div>
+          <div class="skill-name">Motion &amp; Effects</div>
+          <p class="skill-desc">Smooth transitions, text animations, colour grading. The polish that separates good edits from premium ones.</p>
+          <div class="skill-tags">
+            <span class="skill-tag">After Effects</span>
+            <span class="skill-tag">Colour Grade</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="div" />
 
   <!-- WORK -->
   <section id="work">
     <div class="inner">
       <div class="reveal">
-        <p class="s-label">Featured Work</p>
-        <h2>The Vault</h2>
-        <p class="s-desc">A couple of our recent long-form edits. Click to watch.</p>
+        <div class="sec-eyebrow">Portfolio</div>
+        <h2>Recent Work</h2>
+        <p class="sec-sub">A selection of edits across long-form, short-form, and thumbnails.</p>
       </div>
-      <div class="videos-grid">
+      <div class="work-grid">
 
-        <div class="video-card reveal d1">
-          <div class="video-card-header">
-            <div>
-              <div class="video-title">Edit 1</div>
-              <div class="video-type">Long-Form Edit</div>
+        <div class="work-card reveal d1">
+          <a class="vid-preview" href="https://drive.google.com/file/d/11zStW6-TIZxIs6czwac7tJ3CP_j71uwk/view?usp=sharing" target="_blank" rel="noopener">
+            <div class="vid-glow"></div>
+            <div class="vid-play-btn">
+              <svg viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
             </div>
-            <div class="video-index">01</div>
-          </div>
-          <a class="watch-btn"
-             href="https://drive.google.com/file/d/11zStW6-TIZxIs6czwac7tJ3CP_j71uwk/view?usp=sharing"
-             target="_blank" rel="noopener">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-            Watch Edit
+            <span class="vid-cta">Play Video</span>
           </a>
+          <div class="work-num">// 001</div>
+          <div class="work-title">Long-Form Edit 01</div>
+          <p class="work-meta">Full YouTube video edit — hooks, B-roll, sound design, and colour grade. Built for maximum watch-time.</p>
+          <div class="work-footer">
+            <span class="work-type">Long-Form</span>
+            <a class="watch-link" href="https://drive.google.com/file/d/11zStW6-TIZxIs6czwac7tJ3CP_j71uwk/view?usp=sharing" target="_blank" rel="noopener">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Watch
+            </a>
+          </div>
         </div>
 
-        <div class="video-card reveal d2">
-          <div class="video-card-header">
-            <div>
-              <div class="video-title">Edit 2</div>
-              <div class="video-type">Long-Form Edit</div>
+        <div class="work-card reveal d2">
+          <a class="vid-preview" href="https://drive.google.com/file/d/13nRaDd3WEYr8_LEeCk7TZmPPVwkUNOFO/view?usp=sharing" target="_blank" rel="noopener">
+            <div class="vid-glow"></div>
+            <div class="vid-play-btn">
+              <svg viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
             </div>
-            <div class="video-index">02</div>
-          </div>
-          <a class="watch-btn"
-             href="https://drive.google.com/file/d/13nRaDd3WEYr8_LEeCk7TZmPPVwkUNOFO/view?usp=sharing"
-             target="_blank" rel="noopener">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-            Watch Edit
+            <span class="vid-cta">Play Video</span>
           </a>
+          <div class="work-num">// 002</div>
+          <div class="work-title">Long-Form Edit 02</div>
+          <p class="work-meta">Dynamic pacing, motion graphics, and chapter structure to keep the audience hooked throughout.</p>
+          <div class="work-footer">
+            <span class="work-type">Long-Form</span>
+            <a class="watch-link" href="https://drive.google.com/file/d/13nRaDd3WEYr8_LEeCk7TZmPPVwkUNOFO/view?usp=sharing" target="_blank" rel="noopener">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Watch
+            </a>
+          </div>
+        </div>
+
+        <div class="work-card reveal d3">
+          <div class="work-num">// 003</div>
+          <div class="work-title">Short-Form Reel</div>
+          <p class="work-meta">Fast-cut reel edited for maximum retention. Trend-adapted audio sync, caption overlays, and snappy pacing.</p>
+          <div class="work-footer">
+            <span class="work-type">Short-Form</span>
+            <span class="soon-label">Coming Soon</span>
+          </div>
+        </div>
+
+        <div class="work-card reveal d4">
+          <div class="work-num">// 004</div>
+          <div class="work-title">Thumbnail Pack</div>
+          <p class="work-meta">Custom thumbnail designs built for high CTR. Bold type, clean layout, and contrast &#8212; tested to perform.</p>
+          <div class="work-footer">
+            <span class="work-type">Thumbnails</span>
+            <span class="soon-label">Coming Soon</span>
+          </div>
         </div>
 
       </div>
     </div>
   </section>
 
-  <hr class="divider" />
+  <hr class="div" />
 
   <!-- ABOUT -->
   <section id="about">
     <div class="inner">
       <div class="reveal">
-        <p class="s-label">About Us</p>
-        <h2>Attention<br />Engineering.</h2>
+        <div class="sec-eyebrow">About Me</div>
+        <h2>The Editor<br />Behind The Screen</h2>
       </div>
-      <div class="about-grid">
-
-        <div class="about-text reveal d1">
-          <p>At Clippers FC, we don't just cut footage — we <strong>engineer attention.</strong> Founded by the Shaikh brothers, our agency was born out of a simple observation: the difference between a creator who plateaus and a brand that dominates is the precision of the edit.</p>
-          <p>We treat every frame like a high-stakes investment. While others "edit," we perform <strong>Attention Engineering.</strong> Our workflow combines the raw speed of a specialised agency with the meticulous detail of a boutique studio.</p>
-          <p class="about-sign">We are the architects behind the scroll. We are Clippers FC.</p>
+      <div class="about-layout">
+        <div class="about-left reveal d1">
+          <p>I go by <strong>Ghost</strong> &#8212; a self-taught video editor obsessed with the craft of making content that actually holds attention. What started as editing gaming clips turned into a full skill set across long-form YouTube, short-form reels, and thumbnail design.</p>
+          <p>I work in <strong>Premiere Pro</strong> daily and understand the difference between a video that gets watched and one that gets skipped. Every project I touch gets the same treatment &#8212; precise cuts, intentional pacing, and a finished feel that makes creators look professional.</p>
+          <p>Currently taking on projects. If your content isn&#39;t performing the way it should, let&#39;s fix that.</p>
         </div>
-
-        <div class="about-cards reveal d2">
-          <div class="about-card">
-            <div class="about-card-name">The Duo Dynamic</div>
-            <div class="about-card-role">Strategy meets execution</div>
-            <p>A seamless partnership between strategy and execution. When you work with us, you aren't hiring a freelancer — you're hiring a system.</p>
+        <div class="spec-table reveal d2">
+          <div class="spec-row">
+            <span class="spec-label">Name</span>
+            <span class="spec-val">Ghost</span>
           </div>
-          <div class="about-card">
-            <div class="about-card-name">Sovereign Standards</div>
-            <div class="about-card-role">Premium. Precise. High-performance.</div>
-            <p>We hold our work to the same standard as our lives — premium, precise, and uncompromising in quality.</p>
+          <div class="spec-row">
+            <span class="spec-label">Role</span>
+            <span class="spec-val">Video Editor</span>
           </div>
-          <div class="about-card">
-            <div class="about-card-name">Results First</div>
-            <div class="about-card-role">Retention. CTR. Growth.</div>
-            <p>We don't care about "pretty" videos. We care about retention, CTR, and growth. If it doesn't move the needle, it doesn't make the cut.</p>
+          <div class="spec-row">
+            <span class="spec-label">Primary Tool</span>
+            <span class="spec-val accent">Premiere Pro</span>
           </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <hr class="divider" />
-
-  <!-- SERVICES -->
-  <section id="services">
-    <div class="inner">
-      <div class="reveal">
-        <p class="s-label">Services</p>
-        <h2>What we do</h2>
-      </div>
-      <div class="services-grid">
-        <div class="svc-card reveal d1">
-          <div class="svc-icon">⚡</div>
-          <div class="svc-name">Short-Form</div>
-          <p class="svc-desc">Reels, TikToks, and Shorts. Fast, punchy edits designed to hook in the first second and keep people watching.</p>
-        </div>
-        <div class="svc-card reveal d2">
-          <div class="svc-icon">🎬</div>
-          <div class="svc-name">YouTube Long-Form</div>
-          <p class="svc-desc">Full video edits with B-roll, pacing, and structure that keeps viewers engaged all the way through.</p>
-        </div>
-        <div class="svc-card reveal d3">
-          <div class="svc-icon">✉️</div>
-          <div class="svc-name">Got something else?</div>
-          <p class="svc-desc">Drop us a message and we'll figure out what works for your project.</p>
+          <div class="spec-row">
+            <span class="spec-label">Also Uses</span>
+            <span class="spec-val">After Effects / PS</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label">Speciality</span>
+            <span class="spec-val">Long-Form &amp; Reels</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-label">Status</span>
+            <span class="spec-val accent">Open For Work &#10003;</span>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <hr class="divider" />
+  <hr class="div" />
 
   <!-- CONTACT -->
   <section id="contact">
     <div class="inner">
-      <div class="reveal">
-        <p class="s-label">Contact</p>
-        <h2>Let's work together</h2>
-        <p class="s-desc">Reach out on Discord or email — we reply fast.</p>
-      </div>
-
-      <div class="contact-cards">
-
-        <!-- Discord -->
-        <div class="contact-card reveal d1">
-          <div class="cc-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="var(--purple-light)">
-              <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
-            </svg>
+      <div class="contact-wrap">
+        <div class="reveal">
+          <div class="sec-eyebrow">Let&#39;s Connect</div>
+          <h3>Ready To Work<br />With <em>Ghost?</em></h3>
+          <p>Slide into my Discord &#8212; that&#39;s where I&#39;m fastest. Tell me what you&#39;re working on and let&#39;s make something great.</p>
+          <div class="status-pill">
+            <span class="status-dot"></span>
+            Available For New Projects
           </div>
-          <div class="cc-label">Discord</div>
-          <div class="cc-value">hero.sama</div>
-          <a class="cc-action" href="https://discord.com" target="_blank" rel="noopener">
-            Message us ↗
+        </div>
+
+        <div class="contact-cards reveal d1">
+
+          <a class="c-card" href="https://discord.com" target="_blank" rel="noopener">
+            <div class="c-card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#A855F7">
+                <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
+              </svg>
+            </div>
+            <div style="flex:1; min-width:0;">
+              <div class="c-card-label">Discord</div>
+              <div class="c-card-val">ghostisfromcod1</div>
+            </div>
+            <span class="c-arrow">&#8599;</span>
           </a>
-        </div>
 
-        <!-- Email -->
-        <div class="contact-card reveal d2">
-          <div class="cc-icon">📧</div>
-          <div class="cc-label">Email</div>
-          <div class="cc-value">heyyaffan@gmail.com</div>
-          <a class="cc-action" href="mailto:heyyaffan@gmail.com">
-            Send email ↗
-          </a>
-        </div>
+          <div class="c-card" style="cursor:default;">
+            <div class="c-card-icon">&#9201;</div>
+            <div style="flex:1;">
+              <div class="c-card-label">Response Time</div>
+              <div class="c-card-val">Within 24 Hours</div>
+            </div>
+          </div>
 
-        <!-- Status -->
-        <div class="contact-card reveal d3">
-          <div class="cc-icon">✅</div>
-          <div class="cc-label">Availability</div>
-          <div class="cc-value" style="color:#a78bfa;">Open to projects</div>
-          <span class="cc-action" style="cursor:default;">Response within 24h</span>
         </div>
-
       </div>
-
-      <div class="contact-note-strip reveal d4">
-        <strong>How to reach us:</strong> The fastest way to get started is a quick Discord DM to <strong>hero.sama</strong>. Tell us what you're working on and we'll get back to you same day.
-      </div>
-
     </div>
   </section>
 
+  <!-- VIDEO MODAL -->
+  <div class="modal-overlay" id="videoModal" onclick="closeModal(event)">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal()">&#10005;</button>
+      <div class="modal-video">
+        <iframe id="modalFrame" src="" allow="autoplay; fullscreen" allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
+
   <!-- FOOTER -->
   <footer>
-    <div class="f-logo">Clippers<span> FC</span></div>
-    <div class="f-copy">© 2024 Clippers FC</div>
+    <div class="f-logo"><span>G</span>HOST</div>
+    <div class="f-copy">&#169; 2024 Ghost &#8212; Video Editor</div>
   </footer>
 
   <script>
-    // Nav scroll
-    const nav = document.getElementById('nav');
-    window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 40));
+    function openModal(src) {
+      document.getElementById('modalFrame').src = src;
+      document.getElementById('videoModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeModal(e) {
+      if (e && e.target !== document.getElementById('videoModal') && !e.target.classList.contains('modal-close')) return;
+      document.getElementById('modalFrame').src = '';
+      document.getElementById('videoModal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeModal({target: document.getElementById('videoModal')});
+    });
 
-    // Hamburger
-    const ham = document.getElementById('ham');
-    const mobileNav = document.getElementById('mobileNav');
-    ham.addEventListener('click', () => mobileNav.classList.toggle('open'));
-    function closeMobile() { mobileNav.classList.remove('open'); }
+    var nav = document.getElementById('nav');
+    window.addEventListener('scroll', function() {
+      nav.classList.toggle('stuck', window.scrollY > 40);
+    });
 
-    // Scroll reveal
-    const obs = new IntersectionObserver(entries => {
-      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
-    }, { threshold: 0.08 });
-    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+    var ham = document.getElementById('ham');
+    var mobNav = document.getElementById('mobNav');
+    ham.addEventListener('click', function() {
+      mobNav.classList.toggle('open');
+    });
+    function closeMob() { mobNav.classList.remove('open'); }
+
+    var reveals = document.querySelectorAll('.reveal');
+    var obs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) e.target.classList.add('in');
+      });
+    }, { threshold: 0.07 });
+    reveals.forEach(function(el) { obs.observe(el); });
   </script>
+
 </body>
 </html>
